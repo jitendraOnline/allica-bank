@@ -62,8 +62,7 @@ export const CharacterList = () => {
   if (isError) return <p className="p-4 text-red-500">Error fetching characters</p>;
 
   return (
-    <div className="p-4 flex-1 flex flex-col">
-      <h3 className="text-xl font-semibold mb-4">Character List</h3>
+    <div className="p-1 flex-1 flex flex-col">
       <p>
         showing {(page - 1) * pageLimit + 1}-{page * pageLimit} of {data?.total_records}
       </p>
