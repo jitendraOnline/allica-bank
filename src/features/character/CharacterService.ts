@@ -7,12 +7,11 @@ import type {
   PlanetProperties,
 } from './character.type';
 
-export const fetchCharacters = async (page = 1, limit = 10): Promise<CharacterListItem[]> => {
+export const fetchCharacters = async (page = 1, limit = 10): Promise<CharacterListResponse> => {
   const res = await fetch(`https://www.swapi.tech/api/people?page=${page}&limit=${limit}`);
   if (!res.ok) throw new Error('Failed to fetch character list');
-
   const data: CharacterListResponse = await res.json();
-  return data.results;
+  return data;
 };
 
 export const fetchCharacterDetail = async (url: string): Promise<CharacterProperties> => {
