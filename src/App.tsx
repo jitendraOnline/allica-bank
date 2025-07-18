@@ -1,9 +1,9 @@
-import "./App.css";
+import './App.css';
 
 function App() {
   return (
     <>
-      <p className="read-the-docs">Allica Bank</p>
+      <p className="flex bg-amber-50 h-[100vh]">Allica Bank</p>
     </>
   );
 }
