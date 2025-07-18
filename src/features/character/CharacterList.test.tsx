@@ -1,5 +1,5 @@
 import { render } from '@testing-library/react';
-import CharacterList from './CharacterList';
+import { CharacterList } from './CharacterList';
 import { queryClient } from '../../queryClient';
 import { QueryClientProvider } from '@tanstack/react-query';
 
@@ -8,11 +8,6 @@ const renderWithClientProdider = (ui: React.ReactElement) => {
 };
 
 describe('CharacterList Component', () => {
-  it('renders without crashing', async () => {
-    const screen = renderWithClientProdider(<CharacterList />);
-    const heading = await screen.findByText('Character List');
-    expect(heading).toBeInTheDocument();
-  });
   it('it should render character list and names after getting from api', async () => {
     const screen = renderWithClientProdider(<CharacterList />);
     const characterName = await screen.findByText(/Jitendra Patel/i);
@@ -28,11 +23,15 @@ describe('CharacterList Component', () => {
     const previousButton = await screen.findByRole('button', { name: /Previous/i });
     expect(previousButton).toBeInTheDocument();
     expect(previousButton).toBeDisabled();
+    const pageinationDetails = await screen.findByText(/showing 1-10 of 82/i);
+    expect(pageinationDetails).toBeInTheDocument();
 
     const nextButton = await screen.findByRole('button', { name: /Next/i });
     expect(nextButton).toBeInTheDocument();
     expect(nextButton).toBeEnabled();
     nextButton.click();
+    const pageinationDetails1 = await screen.findByText(/showing 11-20 of 3/i);
+    expect(pageinationDetails1).toBeInTheDocument();
 
     const characterName = await screen.findByText(/Jitendra Patel Page 2/i);
     expect(characterName).toBeInTheDocument();

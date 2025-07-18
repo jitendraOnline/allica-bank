@@ -1,22 +1,25 @@
-import { useQuery, useQueries } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { fetchCharacters, fetchCharacterDetail, fetchPlanet } from './CharacterService';
 import type { CharacterProperties } from './character.type';
 
-const CharacterCard = ({
-  character,
-}: {
-  character: {
-    uid: string;
-    name: string;
-    detail?: CharacterProperties;
-  };
-}) => {
-  const { detail } = character;
+const pageLimit = 10;
+
+const TableRowCharacter = ({ uid, name, url }: { uid: string; name: string; url: string }) => {
+  const {
+    data: detail,
+    isLoading: isDetailLoading,
+    isError: isDetailError,
+  } = useQuery<CharacterProperties>({
+    queryKey: ['character-detail', uid],
+    queryFn: () => fetchCharacterDetail(url),
+    staleTime: Infinity,
+  });
 
   const {
-    data: planetName,
-    isLoading,
-    isError,
+    data: planet,
+    isLoading: isPlanetLoading,
+    isError: isPlanetError,
   } = useQuery({
     queryKey: ['planet', detail?.homeworld],
     queryFn: () => fetchPlanet(detail!.homeworld),
@@ -24,66 +27,80 @@ const CharacterCard = ({
     staleTime: Infinity,
   });
 
+  const gender = isDetailLoading
+    ? 'Loading...'
+    : isDetailError
+      ? 'Unknown'
+      : (detail?.gender ?? '-');
+
+  const planetName = isPlanetLoading
+    ? 'Loading...'
+    : isPlanetError
+      ? 'Unknown'
+      : typeof planet === 'string'
+        ? planet
+        : (planet?.name ?? '-');
+
   return (
-    <li className="flex gap-3 border border-gray-200 p-4 rounded shadow bg-white flex-1">
-      <p className="text-sm text-gray-500">{character.name}</p>
-      <p className="text-sm text-gray-600 capitalize">{detail?.gender ?? '-'}</p>
-      <p className="text-sm text-gray-500">
-        {isLoading
-          ? 'Loading planet...'
-          : isError
-            ? 'Unknown'
-            : typeof planetName === 'string'
-              ? planetName
-              : (planetName?.name ?? '-')}
-      </p>
-    </li>
+    <tr className="hover:bg-blue-50">
+      <td className="px-4 py-2 text-sm text-gray-800 whitespace-nowrap">{name}</td>
+      <td className="px-4 py-2 text-sm text-gray-600 whitespace-nowrap">{gender}</td>
+      <td className="px-4 py-2 text-sm text-gray-500 whitespace-nowrap">{planetName}</td>
+    </tr>
   );
 };
 
-export const CharacterListPage = () => {
-  const page = 1;
+export const CharacterList = () => {
+  const [page, setPage] = useState(1);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['characters', page],
     queryFn: () => fetchCharacters(page),
   });
 
-  const characterDetailQueries = useQueries({
-    queries:
-      data?.map((char) => ({
-        queryKey: ['character-detail', char.uid],
-        queryFn: () => fetchCharacterDetail(char.url),
-        staleTime: Infinity,
-      })) ?? [],
-  });
-
-  const characters =
-    data?.map((baseChar, i) => ({
-      uid: baseChar.uid,
-      name: baseChar.name,
-      detail: characterDetailQueries[i]?.data,
-      isLoading: characterDetailQueries[i]?.isLoading,
-    })) ?? [];
-
-  if (isLoading || characterDetailQueries.some((q) => q.isLoading)) {
-    return <p className="p-4">Loading...</p>;
-  }
-
-  if (isLoading || characterDetailQueries.some((q) => q.isError)) {
-    return <p className="p-4 text-red-500">Error loading characters</p>;
-  }
+  if (isLoading) return <p className="p-4">Loading characters...</p>;
+  if (isError) return <p className="p-4 text-red-500">Error fetching characters</p>;
 
   return (
-    <div className="p-2  flex-1 flex flex-col">
-      <h3>Character List</h3>
-      <ul className="space-y-2 flex flex-col">
-        {characters.map((char) => (
-          <CharacterCard key={char.uid} character={char} />
-        ))}
-      </ul>
+    <div className="p-4 flex-1 flex flex-col">
+      <h3 className="text-xl font-semibold mb-4">Character List</h3>
+      <p>
+        showing {(page - 1) * pageLimit + 1}-{page * pageLimit} of {data?.total_records}
+      </p>
+
+      <div className="overflow-x-auto rounded shadow">
+        <table className="min-w-full table-auto border border-gray-200">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="text-left px-4 py-2 text-sm font-medium text-gray-900 ">Name</th>
+              <th className="px-4 py-2 text-left text-sm font-medium text-gray-900 ">Gender</th>
+              <th className="px-4 py-2 text-left text-sm font-medium text-gray-900 ">Planet</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white ">
+            {data?.results?.map((char: { uid: string; name: string; url: string }) => (
+              <TableRowCharacter key={char.uid} uid={char.uid} name={char.name} url={char.url} />
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="flex justify-between mt-6">
+        <button
+          className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={!data?.previous}
+          onClick={() => setPage((prev) => prev - 1)}
+        >
+          Previous
+        </button>
+        <button
+          className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+          disabled={!data?.next}
+          onClick={() => setPage((prev) => prev + 1)}
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 };
-
-export default CharacterListPage;

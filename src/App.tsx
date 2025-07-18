@@ -1,5 +1,5 @@
 import './App.css';
-import { CharacterListPage } from './features/character/CharacterList';
+import CharacterListPage from './features/character';
 
 function App() {
   return (
