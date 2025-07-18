@@ -27,6 +27,40 @@ export const handlers = [
       };
       return HttpResponse.json(response);
     }
+    if (page === '2') {
+      const response: CharacterListResponse = {
+        message: 'ok',
+        total_records: 3,
+        total_pages: 3,
+        previous: 'https://www.swapi.tech/api/people?page=1&limit=10',
+        next: 'https://www.swapi.tech/api/people?page=3&limit=10',
+        results: [
+          {
+            uid: '2',
+            name: 'Jitendra Patel Page 2',
+            url: 'https://www.swapi.tech/api/people/2',
+          },
+        ],
+      };
+      return HttpResponse.json(response);
+    }
+    if (page === '3') {
+      const response: CharacterListResponse = {
+        message: 'ok',
+        total_records: 3,
+        total_pages: 3,
+        previous: 'https://www.swapi.tech/api/people?page=1&limit=10',
+        next: null,
+        results: [
+          {
+            uid: '3',
+            name: 'Jitendra Patel Page 3',
+            url: 'https://www.swapi.tech/api/people/2',
+          },
+        ],
+      };
+      return HttpResponse.json(response);
+    }
 
     return HttpResponse.json({
       message: 'ok',
