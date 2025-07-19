@@ -3,6 +3,6 @@ import App from './App';
 import { renderWithClientProdider } from '../tests/helper';
 
 test('should render app', async () => {
-  renderWithClientProdider(<App />);
+  renderWithClientProdider(<App />, false);
   expect(screen.getByText('Allica Bank')).toBeInTheDocument();
 });

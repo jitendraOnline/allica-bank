@@ -1,4 +1,4 @@
-import { waitForElementToBeRemoved } from '@testing-library/react';
+import { waitForElementToBeRemoved, within } from '@testing-library/react';
 import { CharacterList } from './CharacterListPage';
 import userEvent from '@testing-library/user-event';
 import { renderWithClientProdider } from '../../../tests/helper';
@@ -48,22 +48,31 @@ describe('CharacterList Component', () => {
 
   it('user should be able to search for character by name', async () => {
     const screen = renderWithClientProdider(<CharacterList />);
+
     const searchInput = await screen.findByPlaceholderText(/Search by character name/i);
     expect(searchInput).toBeInTheDocument();
+
     await userEvent.type(searchInput, 'Search Patel');
     expect(searchInput).toHaveValue('Search Patel');
-    const Loading = await screen.findByText(/Loading.../i);
-    // Wait for loading to disappear
-    await waitForElementToBeRemoved(Loading, { timeout: 2000 });
-    const characterName = await screen.findByText(/Search Patel/i);
+    const loading = await screen.findByText(/Loading.../i);
+    await waitForElementToBeRemoved(loading, { timeout: 2000 });
+
+    const tbody = screen.container.querySelector('tbody');
+    const characterName = await within(tbody!).findByText(/Search Patel/i);
     expect(characterName).toBeInTheDocument();
     await userEvent.clear(searchInput);
     await userEvent.type(searchInput, 'I am not there sorry');
     expect(searchInput).toHaveValue('I am not there sorry');
-    const Loading1 = await screen.findByText(/Loading.../i);
-    expect(Loading1).toBeInTheDocument();
 
-    const characterName2 = await screen.queryByText(/Search Patel/i);
+    const loading1 = await screen.findByText(/Loading.../i);
+    expect(loading1).toBeInTheDocument();
+    const characterName2 = await within(tbody!).queryByText(/Search Patel/i);
     expect(characterName2).not.toBeInTheDocument();
+
+    const previousButton = await screen.queryByRole('button', { name: /Previous/i });
+    expect(previousButton).not.toBeInTheDocument();
+
+    const nextButton = await screen.queryByRole('button', { name: /Next/i });
+    expect(nextButton).not.toBeInTheDocument();
   });
 });

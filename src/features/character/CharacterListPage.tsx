@@ -1,45 +1,27 @@
 import { useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { fetchCharacters, fetchCharacterDetail, fetchPlanet } from './CharacterService';
-import type { CharacterListItem, CharacterProperties } from './character.type';
+import { fetchCharacters, fetchPlanet } from './CharacterService';
+import type { CharacterListItem } from './character.type';
 import { debouse } from '../../shared/utils';
+import { Link, useSearchParams } from 'react-router-dom';
 
 const pageLimit = 10;
 
 const TableRowCharacter = ({ characterItem }: { characterItem: CharacterListItem }) => {
-  const { uid, name, url, homeworld, gender: initialGender } = characterItem;
+  const { uid, name, homeworld, gender: initialGender } = characterItem;
 
-  const shouldFetchDetail = !initialGender;
-
-  const {
-    data: detail,
-    isLoading: isDetailLoading,
-    isError: isDetailError,
-  } = useQuery<CharacterProperties>({
-    queryKey: ['character-detail', uid],
-    queryFn: ({ signal }) => fetchCharacterDetail(url, signal),
-    enabled: shouldFetchDetail,
-    staleTime: Infinity,
-  });
-
-  const gender = initialGender
-    ? initialGender
-    : isDetailLoading
-      ? 'Loading...'
-      : isDetailError
-        ? 'Unknown'
-        : (detail?.gender ?? '-');
-
-  const homeworldUrl = homeworld || detail?.homeworld;
+  const [searchParams] = useSearchParams();
+  const query = searchParams.toString();
+  const querySuffix = query ? `?${query}` : '';
 
   const {
     data: planet,
     isLoading: isPlanetLoading,
     isError: isPlanetError,
   } = useQuery({
-    queryKey: ['planet', homeworldUrl],
-    queryFn: ({ signal }) => fetchPlanet(homeworldUrl!, signal),
-    enabled: !!homeworldUrl,
+    queryKey: ['planet', homeworld],
+    queryFn: ({ signal }) => fetchPlanet(homeworld!, signal),
+    enabled: !!homeworld,
     staleTime: Infinity,
   });
 
@@ -53,17 +35,26 @@ const TableRowCharacter = ({ characterItem }: { characterItem: CharacterListItem
 
   return (
     <tr className="hover:bg-blue-50">
-      <td className="px-4 py-2 text-sm text-gray-800 whitespace-nowrap">{name}</td>
-      <td className="px-4 py-2 text-sm text-gray-600 whitespace-nowrap">{gender}</td>
+      <td className="px-4 py-2 text-sm text-gray-800 whitespace-nowrap">
+        <Link to={`/characters/${uid}${querySuffix}`} className="text-blue-600 hover:underline">
+          {name}
+        </Link>
+      </td>
+      <td className="px-4 py-2 text-sm text-gray-600 whitespace-nowrap">{initialGender}</td>
       <td className="px-4 py-2 text-sm text-gray-500 whitespace-nowrap">{planetName}</td>
     </tr>
   );
 };
 
 export const CharacterList = () => {
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const [inputValue, setInputValue] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = Number(searchParams.get('page') || '1');
+  const search = searchParams.get('search') || '';
+  const [inputValue, setInputValue] = useState(search);
+
+  const updateParams = (newPage: number, newSearch: string) => {
+    setSearchParams({ page: String(newPage), search: newSearch });
+  };
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['characters', page, search],
@@ -73,14 +64,18 @@ export const CharacterList = () => {
 
   const debouncedSetSearchRef = useRef(
     debouse((value: string) => {
-      setSearch(value);
-      setPage(1);
+      updateParams(1, value);
     })
   );
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value);
-    debouncedSetSearchRef.current(e.target.value);
+    const val = e.target.value;
+    setInputValue(val);
+    debouncedSetSearchRef.current(val);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    updateParams(newPage, search);
   };
 
   const tableHeaders = ['Name', 'Gender', 'Planet'];
@@ -108,16 +103,20 @@ export const CharacterList = () => {
           <p className="text-sm font-medium">Error fetching characters.</p>
           <button
             onClick={() => refetch()}
-            className="text-sm text-blue-600 underline hover:text-blue-800  rounded cursor-pointer"
+            className="text-sm text-blue-600 underline hover:text-blue-800 rounded cursor-pointer"
           >
             Try again
           </button>
         </div>
       ) : (
         <>
-          <p className="text-sm text-gray-700">
-            {getPaginationInfo(page, pageLimit, data?.total_records ?? 0)}
-          </p>
+          {!isLoading && (
+            <p className="text-sm text-gray-700">
+              {search
+                ? `Found ${data?.total_records} result for ${search}. ${data?.total_records === 0 ? 'try differnt character name' : ''} `
+                : getPaginationInfo(page, pageLimit, data?.total_records ?? 0)}
+            </p>
+          )}
 
           <div className="overflow-x-auto h-[400px] rounded shadow border border-gray-200">
             <table className="min-w-full table-auto">
@@ -133,7 +132,6 @@ export const CharacterList = () => {
                   ))}
                 </tr>
               </thead>
-
               <tbody className="bg-white">
                 {isLoading ? (
                   <tr>
@@ -152,23 +150,25 @@ export const CharacterList = () => {
         </>
       )}
 
-      <div className="flex justify-between items-center pt-4">
-        <button
-          onClick={() => setPage((p) => p - 1)}
-          disabled={!data?.previous}
-          className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-        >
-          Previous
-        </button>
+      {!search && (
+        <div className="flex justify-between items-center pt-4">
+          <button
+            onClick={() => handlePageChange(page - 1)}
+            disabled={!data?.previous}
+            className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
 
-        <button
-          onClick={() => setPage((p) => p + 1)}
-          disabled={!data?.next}
-          className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-        >
-          Next
-        </button>
-      </div>
+          <button
+            onClick={() => handlePageChange(page + 1)}
+            disabled={!data?.next}
+            className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };
