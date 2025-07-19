@@ -1,7 +1,22 @@
+export interface CharacterSearchResultItem {
+  uid: string;
+  description: string;
+  _id: string;
+  __v: number;
+  properties: CharacterProperties;
+}
+
+export interface CharacterSearchResponse {
+  message: string;
+  result: CharacterSearchResultItem[];
+}
+
 export interface CharacterListItem {
   uid: string;
   name: string;
   url: string;
+  gender?: string;
+  homeworld?: string;
 }
 
 export interface CharacterProperties {
