@@ -4,6 +4,7 @@ import { fetchCharacters, fetchPlanet } from './CharacterService';
 import type { CharacterListItem } from './character.type';
 import { debouse } from '../../shared/utils';
 import { Link, useSearchParams } from 'react-router-dom';
+import { useFavourites } from './hooks/useFavourites';
 
 const pageLimit = 10;
 
@@ -51,6 +52,8 @@ export const CharacterList = () => {
   const page = Number(searchParams.get('page') || '1');
   const search = searchParams.get('search') || '';
   const [inputValue, setInputValue] = useState(search);
+  const [showFavouritesOnly, setShowFavouritesOnly] = useState(false);
+  const { favourites } = useFavourites();
 
   const updateParams = (newPage: number, newSearch: string) => {
     setSearchParams({ page: String(newPage), search: newSearch });
@@ -60,6 +63,7 @@ export const CharacterList = () => {
     queryKey: ['characters', page, search],
     queryFn: ({ signal }) => fetchCharacters(page, search, pageLimit, signal),
     staleTime: 1000 * 60 * 5,
+    enabled: !showFavouritesOnly,
   });
 
   const debouncedSetSearchRef = useRef(
@@ -87,7 +91,7 @@ export const CharacterList = () => {
 
   return (
     <div className="p-4 space-y-6">
-      <div>
+      <div className="flex gap-2 ">
         <input
           type="text"
           placeholder="Search by character name"
@@ -96,6 +100,14 @@ export const CharacterList = () => {
           onChange={handleSearchChange}
           className="w-full max-w-sm p-2 border border-gray-300 rounded"
         />
+        <label className="inline-flex items-center space-x-2 mb-2">
+          <input
+            type="checkbox"
+            checked={showFavouritesOnly}
+            onChange={() => setShowFavouritesOnly((prev) => !prev)}
+          />
+          <span className="text-sm">Show Favourites Only</span>
+        </label>
       </div>
 
       {isError ? (
@@ -133,7 +145,15 @@ export const CharacterList = () => {
                 </tr>
               </thead>
               <tbody className="bg-white">
-                {isLoading ? (
+                {showFavouritesOnly ? (
+                  Object.values(favourites).length === 0 ? (
+                    <p className="text-gray-500">No favourites added.</p>
+                  ) : (
+                    Object.values(favourites).map((char) => (
+                      <TableRowCharacter key={char.uid} characterItem={char} />
+                    ))
+                  )
+                ) : isLoading ? (
                   <tr>
                     <td colSpan={tableHeaders.length} className="px-4 py-2 text-sm text-gray-600">
                       Loading...

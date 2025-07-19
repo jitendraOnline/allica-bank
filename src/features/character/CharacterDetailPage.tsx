@@ -2,6 +2,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom'; // ⬅�
 import { useQuery } from '@tanstack/react-query';
 import { fetchCharacterDetail, fetchPlanet, fetchAllFilms } from './CharacterService';
 import type { FilmDetail } from './character.type';
+import { useFavourites } from './hooks/useFavourites';
 
 function CharacterDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -19,7 +20,7 @@ function CharacterDetailPage() {
     enabled: !!id,
     staleTime: 1000 * 60 * 5,
   });
-
+  const { isFavourite, toggleFavourite } = useFavourites(id, { ...character!, uid: id! });
   const {
     data: planet,
     isLoading: isPlanetLoading,
@@ -63,6 +64,14 @@ function CharacterDetailPage() {
         className="text-sm text-blue-600 underline hover:text-blue-800"
       >
         ← Back to Character List
+      </button>
+      <button
+        disabled={isLoading}
+        onClick={toggleFavourite}
+        className={`text-sm ml-4 ${isFavourite ? 'text-yellow-500' : 'text-gray-400'} hover:text-yellow-600 disabled:text-gray-200`}
+        aria-label="Toggle Favourite Button"
+      >
+        {isFavourite ? '★' : '☆'} Favourite
       </button>
       {isLoading ? (
         <div className="text-gray-500">Loading character details...</div>
