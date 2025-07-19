@@ -1,3 +1,10 @@
+export type FilmDetail = {
+  title: string;
+  release_date: string;
+  characters: string[];
+  uid: string;
+};
+
 export interface CharacterSearchResultItem {
   uid: string;
   description: string;
