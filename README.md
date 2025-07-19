@@ -1,69 +1,65 @@
-# React + TypeScript + Vite
+# Allica Bank - Assignement
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is a React 19 app created using Vite. It uses Tailwind CSS for styling, TypeScript, and TanStack Query for data fetching.
 
-Currently, two official plugins are available:
+## Getting Started
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Prerequisites
 
-## Expanding the ESLint configuration
+- Node.js **v24** (or at least v20+ recommended)
+- npm **v9+**
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Installation
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+```bash
+git clone https://github.com/jitendraOnline/allica-bank.git
+cd allica-bank
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Start the app
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x';
-import reactDom from 'eslint-plugin-react-dom';
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+```bash
+npm run dev
 ```
+
+## Running Tests
+
+We used Vitest and React Testing Library for testing.
+
+To run tests:
+
+```bash
+npm run test
+```
+
+run test with coverage:
+
+```bash
+npm run test:coverage
+```
+
+run test on Vitest UI to view on brouser and line coverage:
+
+```bash
+npm run test:ui
+```
+
+## Other Scripts
+
+```bash
+npm run lint
+npm run format
+npm run build
+npm run preview
+```
+
+---
+
+## Notes
+
+- MSW (Mock Service Worker) is used for mocking API calls in tests.
+- Tailwind CSS is configured via the official Vite plugin.
+- Project structure is feature-based, and kept intentionally simple.
+
+---
