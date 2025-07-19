@@ -1,12 +1,7 @@
-import { render, waitForElementToBeRemoved } from '@testing-library/react';
-import { CharacterList } from './CharacterList';
-import { queryClient } from '../../queryClient';
-import { QueryClientProvider } from '@tanstack/react-query';
+import { waitForElementToBeRemoved } from '@testing-library/react';
+import { CharacterList } from './CharacterListPage';
 import userEvent from '@testing-library/user-event';
-
-const renderWithClientProdider = (ui: React.ReactElement) => {
-  return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
-};
+import { renderWithClientProdider } from '../../../tests/helper';
 
 describe('CharacterList Component', () => {
   it('it should render character list and names after getting from api', async () => {
