@@ -1,3 +1,4 @@
+import localStorageUtils from '../../shared/storage.utils';
 import type {
   CharacterListItem,
   CharacterListResponse,
@@ -94,3 +95,25 @@ export const fetchAllFilms = async (signal?: AbortSignal) => {
   const data = await res.json();
   return data.result.map((item: any) => item.properties);
 };
+
+const FAV_KEY = 'favouriteCharacters';
+
+export function getFavourites(): Record<string, CharacterListItem> {
+  return localStorageUtils.get<Record<string, CharacterListItem>>(FAV_KEY) ?? {};
+}
+
+export function addFavourite(character: CharacterListItem) {
+  const favs = getFavourites();
+  favs[character.uid] = character;
+  localStorageUtils.set(FAV_KEY, favs);
+}
+
+export function removeFavourite(uid: string) {
+  const favs = getFavourites();
+  delete favs[uid];
+  localStorageUtils.set(FAV_KEY, favs);
+}
+
+export function isFavourite(uid: string): boolean {
+  return uid in getFavourites();
+}

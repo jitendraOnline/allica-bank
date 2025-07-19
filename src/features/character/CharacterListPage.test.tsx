@@ -75,4 +75,69 @@ describe('CharacterList Component', () => {
     const nextButton = await screen.queryByRole('button', { name: /Next/i });
     expect(nextButton).not.toBeInTheDocument();
   });
+
+  it('favourites:show only favourites when toggle is on', async () => {
+    const character = {
+      '12': {
+        created: '2025-07-18T19:29:06.136Z',
+        edited: '2025-07-18T19:29:06.136Z',
+        name: 'Favourite Character',
+        gender: 'n/a',
+        skin_color: 'white, red',
+        hair_color: 'n/a',
+        height: '97',
+        eye_color: 'red',
+        mass: '32',
+        homeworld: 'https://www.swapi.tech/api/planets/1',
+        birth_year: 'unknown',
+        url: 'https://www.swapi.tech/api/people/8',
+        uid: '12',
+      },
+    };
+
+    localStorage.setItem('favouriteCharacters', JSON.stringify(character));
+
+    const screen = renderWithClientProdider(<CharacterList />);
+    const favouriteToggle = await screen.findByRole('checkbox', { name: /Show Favourites Only/i });
+    expect(favouriteToggle).toBeInTheDocument();
+    expect(favouriteToggle).not.toBeChecked();
+
+    await userEvent.click(favouriteToggle);
+    expect(favouriteToggle).toBeChecked();
+
+    const tbody = screen.container.querySelector('tbody');
+    const characterName = await within(tbody!).findByText(/Favourite Character/i);
+    expect(characterName).toBeInTheDocument();
+
+    localStorage.removeItem('favouriteCharacters');
+    await userEvent.click(favouriteToggle);
+    expect(favouriteToggle).not.toBeChecked();
+
+    const tbody1 = screen.container.querySelector('tbody');
+    const characterName1 = await within(tbody1!).findByText(/Jitendra Patel/i);
+    expect(characterName1).toBeInTheDocument();
+
+    await userEvent.click(favouriteToggle);
+    expect(favouriteToggle).toBeChecked();
+  });
+
+  it('favourites: should not dispaly favourites character when local stoage is cleared', async () => {
+    localStorage.clear();
+    const screen = renderWithClientProdider(<CharacterList />);
+    const favouriteToggle = await screen.findByRole('checkbox', {
+      name: /Show Favourites Only/i,
+    });
+    expect(favouriteToggle).toBeInTheDocument();
+    expect(favouriteToggle).not.toBeChecked();
+
+    await userEvent.click(favouriteToggle);
+    expect(favouriteToggle).toBeChecked();
+
+    const tbody = screen.container.querySelector('tbody');
+    const characterName = await within(tbody!).queryByText(/Favourite Character/i);
+    expect(characterName).not.toBeInTheDocument();
+
+    const characterName2 = await within(tbody!).findByText(/No favourites added/i);
+    expect(characterName2).toBeInTheDocument();
+  });
 });
